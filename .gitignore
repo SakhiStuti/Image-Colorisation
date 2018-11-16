@@ -1,0 +1,7 @@
+*.jpg
+*.JPGE
+*.png
+*.ipynb
+.ipynb_checkpoints
+__pycache__
+ILVS
