@@ -17,7 +17,7 @@ class training:
         self.model = ColorizationNetwork()
         self.batch_size = args.batch_size
         self.val_batch_size = args.val_batch_size
-        self.num_iterations = args.num_iterations
+        self.num_iterations = args.num_iteration
         self.gpu = args.gpu
         self.pretrained = args.pretrained
         self.epoch = args.epoch
@@ -27,7 +27,7 @@ class training:
         self.lr_update_iter = args.lr_update_iter
         self.loss_arr = []
         #define criterion
-        self.criterion = nn.CrossEntropyLoss(reduction =False).cuda()
+        self.criterion = nn.CrossEntropyLoss(reduce=False).cuda()
         #optimizer
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=1e-3)
 
@@ -70,13 +70,16 @@ class training:
         #start training
         for i, data in enumerate(train_loader, start_iter):
             img, _ = data
+            print('img shape', img.shape)
 
             img = Variable(img).cuda()
 
-            weights, Z_gt, Z_pred = model(img, self.pretrained)
-
-            loss = ((self.criterion(Z_gt, Z_pred).sum(axis = 1))*weights.squeeze(axis = 1)).sum()
-
+            weights, Z_gt, Z_pred = model(img)
+            print(Z_gt.shape)
+            print(Z_pred.shape)
+            ce = self.criterion(Z_pred, Z_gt)
+            loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(axis = 1)).sum()
+            
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -150,7 +153,7 @@ class training:
                 img = Variable(img, volatile=True) 
 
             weights, Z_gt, Z_pred, Z_pred_upsample  = self.model(img)
-            loss = ((self.criterion(Z_gt, Z_pred).sum(axis = 1))*weights.squeeze(axis = 1)).sum()
+            loss = (self.criterion(Z_pred, Z_gt)*weights.squeeze(axis = 1)).sum()
             test_loss += loss.data[0]
 
             img_L = img[:,:1,:,:] #[batch, 1, 224, 224]

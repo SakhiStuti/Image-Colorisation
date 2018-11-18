@@ -3,12 +3,12 @@ from torch.autograd import Variable
 import torch
 import torch.nn as nn
 from layers import SoftEncodingLayer, NonGrayMaskLayer, ReweighingLayer
-
+import numpy as np
 
 def weights_init(model):
     if type(model) in [nn.Conv2d, nn.Linear]:
-        nn.init.xavier_normal_(model.weight.data)
-        nn.init.constant_(model.bias.data, 0.1)
+        nn.init.xavier_normal(model.weight.data)
+        nn.init.constant(model.bias.data, 0.1)
         
         
 class ColorizationNetwork_L(nn.Module):
@@ -134,6 +134,7 @@ class ColorizationNetwork(nn.Module):
         
         #Processing the L component
         #gt_img_l = (gt_img[:,:1,:,:] - 50.) * 0.02
+        #print('Input Shape', img.shape)
         img_L = img[:, :1, :, :] #[batch, 1, 224, 224]
         Z_pred = self.ColorizationNetwork_L(img_L) #[batch, 313, 56, 56]
         
@@ -143,6 +144,7 @@ class ColorizationNetwork(nn.Module):
         
         #groundtruth Z
         img_ab_prob_dist = self.soft_encoding_layer.evaluate(img_ab_downsample) # [batch, 313, 56, 56]
+        img_ab_prob_dist_argmax = np.argmax(img_ab_prob_dist, axis = 1).astype(np.int32)
         nongray_flag = self.non_gray_mask_layer.evaluate(img_ab_downsample) #[batch, 1, 1, 1]
         
         #Weight for class rebalancing 
@@ -152,13 +154,13 @@ class ColorizationNetwork(nn.Module):
         weight_per_pixel_mask = (weight_per_pixel * nongray_flag).astype('float32') #[batch, 1, 56, 56]
         
         #Convert to tensors, ALL MUST BE float32 type
-        weights = Variable(torch.from_numpy(weight_per_pixel_mask).cuda())
-        Z_groundtruth = Variable(torch.from_numpy(img_ab_prob_dist).cuda())
+        weights = Variable(torch.from_numpy(weight_per_pixel_mask)).cuda()
+        Z_groundtruth_argmax = Variable(torch.from_numpy(img_ab_prob_dist_argmax)).cuda()
         #Z_pred
         
         #Return is different for train and test mode
         if self.training:
-            return weights, Z_groundtruth, Z_pred
+            return weights, Z_groundtruth_argmax, Z_pred
         else:
-            return weights, Z_groundtruth, Z_pred, self.upsample(Z_pred)
+            return weights, Z_groundtruth_argmax, Z_pred, self.upsample(Z_pred)
         

@@ -38,7 +38,7 @@ class SoftEncodingLayer():
         row_indices =  np.arange(0, n_points, dtype='int')[:,np.newaxis] #[batch*56*56, 1]
         
         #Find the Nearest Neighbors
-        (dists, col_indices) = self.nbrs.kneighbors(flat_x) #[batch*56*56, NN] for both
+        (dists, col_indices) = self.NN_model.kneighbors(flat_x) #[batch*56*56, NN] for both
         
         #Smooth using Gaussian Kernel
         weights = np.exp(-dists**2/(2*self.sigma**2)) #[batch*56*56, NN]
