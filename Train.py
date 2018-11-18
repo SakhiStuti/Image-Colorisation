@@ -82,23 +82,24 @@ class training:
             self.optimizer.step()
 
             #logging
-            if (i+1) % 500 == 0:
+            if (i) % 500 == 0:
                 print('At iteration %d, loss is %.4f'%(i,loss.data()))
                 self.loss_arr.append(loss.data())
 
             #Update learning rate if required
-            if (i+1) % self.lr_update_iter == 0:
+            if (i) % self.lr_update_iter == 0:
                 self.record_iters = i
                 if self.lr > 1e-8:
                     self.lr *= 0.316
                 self.update_lr(self.lr)
 
             #validate/Test
-            
+            if i%5000 ==0:
+                self.test(val_loader, i)
 
 
             #checkpoint
-            if (i+1)%2000 == 0:
+            if (i)%2000 == 0:
                 state_dict = model.state_dict()
                 checkpoint = {'iteration': i,
                               'state_dict': state_dict,
@@ -140,7 +141,7 @@ class training:
             print('completed %d of %d' % (global_iteration, len_record))
             
             # Iterate over data.
-            img = next(data_iter)
+            img , _ = next(data_iter)
 
             # wrap them in Variable
             if self.cuda:
