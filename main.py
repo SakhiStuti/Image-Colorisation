@@ -2,7 +2,6 @@ import os
 import argparse
 
 import torch
-import torchvision
 from torchvision import transforms, datasets
 
 from Train import training
@@ -12,8 +11,7 @@ def main(args):
 
     data_transform = transforms.Compose([
     transforms.Resize((224,224)),
-    RGB_to_LAB(),
-    transforms.ToTensor()
+    RGB_to_LAB()
     ])
 
     #Loading the Training Set
