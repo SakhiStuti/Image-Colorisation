@@ -19,9 +19,7 @@ def main(args):
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=args.num_workers)
 
     #Loading the Validation Set
-    val_root_path = os.path.join(args.trainset_path,'ILSVRC2012_img_train')
-
-    val_dataset = datasets.ImageFolder(root=val_root_path,
+    val_dataset = datasets.ImageFolder(root=args.valset_path,
                                                transform=data_transform)
     val_loader = torch.utils.data.DataLoader(val_dataset,
                                                  batch_size=args.batch_size, shuffle=False, pin_memory=True,
@@ -51,6 +49,6 @@ if __name__=='__main__':
     parser.add_argument('--resume', type=int, default=0, help='Specify the epoch')
     parser.add_argument('--lr', type=float, default=3.16e-4, help='learning_rate')
     parser.add_argument('--lr_update_iter', type=int, default=30000, help='Update lr every this iterations')
-
+    parser.add_argument('--valset_path', type=str, default='/scratch/user/stuti/val_set')
     args = parser.parse_args()
     main(args)
