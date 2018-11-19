@@ -69,56 +69,49 @@ class training:
         print('..........................Starting training.................')
 
         #start training
-        count=0
-        for i, data in enumerate(train_loader, start_iter):
-            img, _ = data
-            print('img shape', img.shape)
-
-            img = Variable(img).cuda()
-
-            weights, Z_gt, Z_pred = model(img)
-            print(Z_gt.shape)
-            print(Z_pred.shape)
-            ce = self.criterion(Z_pred, Z_gt)
-            loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(dim = 1)).sum()
-            
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-
-            #logging
-            if (i) % 500 == 0:
-                print('At iteration %d, loss is %.4f'%(i,loss.data[0]))
-                self.loss_arr.append(loss.data[0])
-
-            #Update learning rate if required
-            if (i) % self.lr_update_iter == 0:
-                self.record_iters = i
-                if self.lr > 1e-8:
-                    self.lr *= 0.316
-                self.update_lr(self.lr)
-
-            #validate/Test
-            if i%5000 ==0:
-                self.test(val_loader, i)
-                model.train()
-
-
-            #checkpoint
-            if (i)%2000 == 0:
-                state_dict = model.state_dict()
-                checkpoint = {'iteration': i,
-                              'state_dict': state_dict,
-                              'lr' : self.lr,
-                              'train_loss_list':self.loss_arr,
-                              'val_loss_list': self.test_arr}
-                save_path = os.path.join(self.save_directory, './net_%d.pth'%(i+1))
-                torch.save(checkpoint, save_path)
-            if count > self.num_iterations:
-               break
-            count += 1
-
-        print('...............Training Completed...........')
+        for epoch in range(self.epoch):
+            for i, data in enumerate(train_loader, start_iter):
+                img, _ = data
+    
+                img = Variable(img).cuda()
+    
+                weights, Z_gt, Z_pred = model(img)
+                loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(dim = 1)).sum()
+                
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+    
+                #logging
+                if (i) % 500 == 0:
+                    print('At Epoch %d iteration %d, loss is %.4f'%(epoch,i,loss.data[0]))
+                    self.loss_arr.append(loss.data[0])
+    
+                #Update learning rate if required
+                if (i) % self.lr_update_iter == 0:
+                    self.record_iters = i
+                    if self.lr > 1e-8:
+                        self.lr *= 0.316
+                    self.update_lr(self.lr)
+    
+                #validate/Test
+                if i%5000 ==0:
+                    self.test(val_loader, i)
+                    model.train()
+    
+    
+                #checkpoint
+                if (i)%2000 == 0:
+                    state_dict = model.state_dict()
+                    checkpoint = {'iteration': i,
+                                  'state_dict': state_dict,
+                                  'lr' : self.lr,
+                                  'train_loss_list':self.loss_arr,
+                                  'val_loss_list': self.test_arr}
+                    save_path = os.path.join(self.save_directory, './net_%d.pth'%(i+1))
+                    torch.save(checkpoint, save_path)
+    
+            print('...............Training Completed...........')
         
         
     def test(self, test_loader, curr_iter, inference_iter=0):
@@ -178,5 +171,3 @@ class training:
             frs_predic_imgs = np.concatenate((img_L, frs_pred_ab ), axis = 3) #[batch, 224, 224, 3]
             print('Saving image %s%d_frspredic_' %  (img_dir, global_iteration))
             self.save_imgs(frs_predic_imgs, '%s%d_frspredic_' %  (img_dir, global_iteration))
-            img = img.cpu().data.numpy().transpose(0,2,3,1).astype('float64')
-            self.save_imgs(img,'%s%d_img_' %  (img_dir ,global_iteration))
