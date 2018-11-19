@@ -25,7 +25,7 @@ class training:
         self.resume = args.resume
         self.lr = args.lr
         self.lr_update_iter = args.lr_update_iter
-        self.loss_arr = []
+        self.loss_arr,self.test_arr = [],[]
         #define criterion
         self.criterion = nn.CrossEntropyLoss(reduce=False).cuda()
         #optimizer
@@ -35,7 +35,7 @@ class training:
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
     
-    def save_imgs(tensor, filename):
+    def save_imgs(self, tensor, filename):
         for index, im in enumerate(tensor):
             # print(im.shape)
             # im =np.clip(im.numpy().transpose(1,2,0), -1, 1) 
@@ -43,6 +43,7 @@ class training:
             io.imsave(filename +'rgb'+ str(index) + '.png', img_rgb_out )
 
     def restore(self,resume_iter):
+        print('Restoring model stage from ./net_%d.pth'%(resume_iter))
         path = os.path.join(self.save_directory, './net_%d.pth'%(resume_iter))
         checkpoint_dict = torch.load(path)
         self.model.load_state_dict(checkpoint_dict['state_dict'])
@@ -68,6 +69,7 @@ class training:
         print('..........................Starting training.................')
 
         #start training
+        count=0
         for i, data in enumerate(train_loader, start_iter):
             img, _ = data
             print('img shape', img.shape)
@@ -78,7 +80,7 @@ class training:
             print(Z_gt.shape)
             print(Z_pred.shape)
             ce = self.criterion(Z_pred, Z_gt)
-            loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(axis = 1)).sum()
+            loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(dim = 1)).sum()
             
             self.optimizer.zero_grad()
             loss.backward()
@@ -86,8 +88,8 @@ class training:
 
             #logging
             if (i) % 500 == 0:
-                print('At iteration %d, loss is %.4f'%(i,loss.data()))
-                self.loss_arr.append(loss.data())
+                print('At iteration %d, loss is %.4f'%(i,loss.data[0]))
+                self.loss_arr.append(loss.data[0])
 
             #Update learning rate if required
             if (i) % self.lr_update_iter == 0:
@@ -99,6 +101,7 @@ class training:
             #validate/Test
             if i%5000 ==0:
                 self.test(val_loader, i)
+                model.train()
 
 
             #checkpoint
@@ -106,9 +109,14 @@ class training:
                 state_dict = model.state_dict()
                 checkpoint = {'iteration': i,
                               'state_dict': state_dict,
-                              'lr' : self.lr}
+                              'lr' : self.lr,
+                              'train_loss_list':self.loss_arr,
+                              'val_loss_list': self.test_arr}
                 save_path = os.path.join(self.save_directory, './net_%d.pth'%(i+1))
                 torch.save(checkpoint, save_path)
+            if count > self.num_iterations:
+               break
+            count += 1
 
         print('...............Training Completed...........')
         
@@ -130,7 +138,7 @@ class training:
         
         self.model.eval()  # Set g_model to training mode
 
-        img_dir =  os.path.join(self.save_directory, 'Test','%d/' % (self.curr_iter))
+        img_dir =  os.path.join(self.save_directory, 'Test','%d/' % (curr_iter))
         if not os.path.exists(img_dir):
             os.makedirs(img_dir)
 
@@ -147,14 +155,12 @@ class training:
             img , _ = next(data_iter)
 
             # wrap them in Variable
-            if self.cuda:
-                img = Variable(img.cuda(), volatile=True)
-            else:
-                img = Variable(img, volatile=True) 
+            img = Variable(img.cuda(), volatile=True)
 
             weights, Z_gt, Z_pred, Z_pred_upsample  = self.model(img)
-            loss = (self.criterion(Z_pred, Z_gt)*weights.squeeze(axis = 1)).sum()
+            loss = (self.criterion(Z_pred, Z_gt)*weights.squeeze(dim = 1)).sum()
             test_loss += loss.data[0]
+            self.test_arr.append(test_loss)
 
             img_L = img[:,:1,:,:] #[batch, 1, 224, 224]
 
@@ -174,7 +180,3 @@ class training:
             self.save_imgs(frs_predic_imgs, '%s%d_frspredic_' %  (img_dir, global_iteration))
             img = img.cpu().data.numpy().transpose(0,2,3,1).astype('float64')
             self.save_imgs(img,'%s%d_img_' %  (img_dir ,global_iteration))
-
-
-
-

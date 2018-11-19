@@ -155,7 +155,8 @@ class ColorizationNetwork(nn.Module):
         
         #Convert to tensors, ALL MUST BE float32 type
         weights = Variable(torch.from_numpy(weight_per_pixel_mask)).cuda()
-        Z_groundtruth_argmax = Variable(torch.from_numpy(img_ab_prob_dist_argmax)).cuda()
+        Z_groundtruth_argmax = Variable(torch.from_numpy(img_ab_prob_dist_argmax))
+        Z_groundtruth_argmax = Z_groundtruth_argmax.type(torch.LongTensor).cuda()
         #Z_pred
         
         #Return is different for train and test mode
