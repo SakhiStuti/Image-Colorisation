@@ -46,6 +46,10 @@ class training:
         print('Restoring model stage from ./net_%d.pth'%(resume_iter))
         path = os.path.join(self.save_directory, './net_%d.pth'%(resume_iter))
         checkpoint_dict = torch.load(path)
+        keys = list(checkpoint_dict['state_dict'].keys())
+        for key in keys:
+            checkpoint_dict['state_dict'][key[7:]] =  checkpoint_dict['state_dict'][key]
+            del checkpoint_dict['state_dict'][key]
         self.model.load_state_dict(checkpoint_dict['state_dict'])
         self.lr = checkpoint_dict['lr']
         return checkpoint_dict['iteration']
