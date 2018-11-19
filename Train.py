@@ -70,6 +70,7 @@ class training:
 
         #start training
         for epoch in range(self.epoch):
+            count = 0
             for i, data in enumerate(train_loader, start_iter):
                 img, _ = data
     
@@ -83,25 +84,25 @@ class training:
                 self.optimizer.step()
     
                 #logging
-                if (i) % 500 == 0:
-                    print('At Epoch %d iteration %d, loss is %.4f'%(epoch,i,loss.data[0]))
+                if (i+1) % 500 == 0:
+                    print('At Epoch %d iteration %d, train loss is %.4f'%(epoch,i,loss.data[0]))
                     self.loss_arr.append(loss.data[0])
     
                 #Update learning rate if required
-                if (i) % self.lr_update_iter == 0:
+                if (i+1) % self.lr_update_iter == 0:
                     self.record_iters = i
                     if self.lr > 1e-8:
                         self.lr *= 0.316
                     self.update_lr(self.lr)
     
                 #validate/Test
-                if i%5000 ==0:
+                if (i+1)%2000 ==0:
                     self.test(val_loader, i)
                     model.train()
     
     
                 #checkpoint
-                if (i)%2000 == 0:
+                if (i+1)%2000 == 0:
                     state_dict = model.state_dict()
                     checkpoint = {'iteration': i,
                                   'state_dict': state_dict,
@@ -110,7 +111,10 @@ class training:
                                   'val_loss_list': self.test_arr}
                     save_path = os.path.join(self.save_directory, './net_%d.pth'%(i+1))
                     torch.save(checkpoint, save_path)
-    
+            
+                if count > self.num_iterations:
+                    break
+                count +=1   
             print('...............Training Completed...........')
         
         
@@ -124,9 +128,9 @@ class training:
             self.restore(inference_iter)
 
         if inference_iter:
-            print('Start inferencing...')
+            print('Start inferencing....................')
         else:
-            print('Start Validating...')
+            print('Start Validating.....................')
             
         
         self.model.eval()  # Set g_model to training mode
@@ -136,13 +140,13 @@ class training:
             os.makedirs(img_dir)
 
         len_record = len(test_loader)
-        softmax_op = torch.nn.Softmax()
+        softmax_op = torch.nn.Softmax(dim = 1)
         test_loss = 0.0
 
         for global_iteration in range(len_record):
             
             
-            print('completed %d of %d' % (global_iteration, len_record))
+            #print('completed %d of %d' % (global_iteration, len_record))
             
             # Iterate over data.
             img , _ = next(data_iter)
@@ -153,7 +157,6 @@ class training:
             weights, Z_gt, Z_pred, Z_pred_upsample  = self.model(img)
             loss = (self.criterion(Z_pred, Z_gt)*weights.squeeze(dim = 1)).sum()
             test_loss += loss.data[0]
-            self.test_arr.append(test_loss)
 
             img_L = img[:,:1,:,:] #[batch, 1, 224, 224]
 
@@ -169,5 +172,8 @@ class training:
             #[batch, 224, 224, 2]
             
             frs_predic_imgs = np.concatenate((img_L, frs_pred_ab ), axis = 3) #[batch, 224, 224, 3]
-            print('Saving image %s%d_frspredic_' %  (img_dir, global_iteration))
+            #print('Saving image %s%d_frspredic_' %  (img_dir, global_iteration))
             self.save_imgs(frs_predic_imgs, '%s%d_frspredic_' %  (img_dir, global_iteration))
+        test_loss = test_loss/float(len_record)
+        print('val loss is %.4f'%(test_loss))
+        self.test_arr.append(test_loss)
