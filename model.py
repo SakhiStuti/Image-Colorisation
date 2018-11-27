@@ -85,7 +85,7 @@ class ColorizationNetwork_L(nn.Module):
             nn.ReLU(), #[batch, 128, 56, 56]
             
             # conv8_313
-            nn.Conv2d(in_channels = 128, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1),
+            nn.Conv2d(in_channels = 128, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1)
             #[batch, 313, 56, 56]
         )
         self.apply(weights_init)

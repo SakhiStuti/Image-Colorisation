@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn as nn
-from model import ColorizationNetwork
+from model_vgg import ColorizationNetwork
 from skimage.color import lab2rgb
 from skimage import io
 import os
