@@ -14,7 +14,6 @@ class ColorizationNetwork_L(nn.Module):
         self.l = list(self.VGG_19.features.children())
         del self.l[52]
         del self.l[39]
-        del self.l[26]
         self.VGG_modified = nn.Sequential(*self.l)
         self.conv_8 = nn.Sequential(
             nn.ConvTranspose2d(in_channels = 512, out_channels = 256, kernel_size = 4, stride = 2, padding = 1, dilation = 1),
@@ -73,10 +72,11 @@ class ColorizationNetwork(nn.Module):
         #Processing the L component
         #gt_img_l = (gt_img[:,:1,:,:] - 50.) * 0.02
         #print('Input Shape', img.shape)
+        batch = img.shape[0]
         img_h = img.shape[2]
         img_w = img.shape[3]
         img_L = img #[batch, 1, 224, 224]
-        img_L[:, 1:,:,:] = torch.zeros([32, 2, img_h, img_w])
+        img_L[:, 1:,:,:] = torch.zeros([batch, 2, img_h, img_w])
         Z_pred = self.ColorizationNetwork_L(img_L) #[batch, 313, 56, 56]
         
         # Processing the ab component 
