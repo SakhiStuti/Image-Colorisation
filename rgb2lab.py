@@ -1,11 +1,11 @@
-import skimage
+from skimage import color
 import numpy as np
 import torch
 
 class RGB_to_LAB:
 
     def __init__(self):
-        self.rgb2lab = skimage.color.rgb2lab
+        self.rgb2lab = color.rgb2lab
 
     def __call__(self, img):
         nd_image = np.array(img)
