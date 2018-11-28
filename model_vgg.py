@@ -10,20 +10,26 @@ class ColorizationNetwork_L(nn.Module):
     def __init__(self):
         super(ColorizationNetwork_L, self).__init__()
         self.VGG_19 = vgg.vgg19_bn(pretrained = True) #[batch, 256, 56*, 56*]
-        self.VGG_19.classifier = nn.ConvTranspose2d(in_channels = 256, out_channels = 128, kernel_size = 4, stride = 2, padding = 1, dilation = 1)
-        self.Relu = nn.ReLU(inplace = True)#[batch, 128, 56*, 56*]
+        self.VGG_19.classifier= nn.Sequential()
+        self.l = list(self.VGG_19.features.children())
+        del self.l[52]
+        del self.l[39]
+        del self.l[26]
+        self.VGG_modified = nn.Sequential(*self.l)
         self.conv_8 = nn.Sequential(
-            nn.Conv2d(in_channels = 128, out_channels = 128, kernel_size = 3, stride = 1, padding = 1, dilation = 1),
+            nn.ConvTranspose2d(in_channels = 512, out_channels = 256, kernel_size = 4, stride = 2, padding = 1, dilation = 1),
+            nn.ReLU(inplace = True),#[batch, 128, 56*, 56*]
+            nn.Conv2d(in_channels = 256, out_channels = 256, kernel_size = 3, stride = 1, padding = 1, dilation = 1),
             nn.ReLU(inplace = True), #[batch, 128, 56*, 56*]
-            nn.Conv2d(in_channels = 128, out_channels = 128, kernel_size = 3, stride = 1, padding = 1, dilation = 1),
+            nn.Conv2d(in_channels = 256, out_channels = 256, kernel_size = 3, stride = 1, padding = 1, dilation = 1),
             nn.ReLU(inplace = True), #[batch, 128, 56*, 56*]
-            nn.Conv2d(in_channels = 128, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1)
+            nn.Conv2d(in_channels = 256, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1)
             #[batch, 313, 56*, 56*] 
         )
         
 
     def forward(self, img_L):
-        vgg_output = self.Relu(self.VGG_19(img_L))
+        vgg_output = self.VGG_modified(img_L)
         Z_pred = self.conv_8(vgg_output)
         return Z_pred
 
