@@ -100,9 +100,9 @@ class training:
                     self.update_lr(self.lr)
     
                 #validate/Test
-                if (i+1)%2000 ==0:
-                    self.test(val_loader, i)
-                    model.train()
+                #if (i+1)%2000 ==0:
+                    #self.test(val_loader, i)
+                    #model.train()
     
     
                 #checkpoint
