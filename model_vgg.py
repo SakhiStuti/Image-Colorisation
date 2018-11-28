@@ -109,4 +109,3 @@ class ColorizationNetwork(nn.Module):
             return weights, Z_groundtruth_argmax, Z_pred
         else:
             return weights, Z_groundtruth_argmax, Z_pred, self.upsample(Z_pred)
-        
