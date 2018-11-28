@@ -29,8 +29,11 @@ def main(args):
 
 
     train = training(args)
-    #Send to train
-    train.train(train_loader, val_loader)
+    if args.infer_iter:
+        train.test(val_loader, args.infer_iter, args.infer_iter)
+    else:
+        #Send to train
+        train.train(train_loader, val_loader)
 
 
 if __name__=='__main__':
@@ -49,5 +52,6 @@ if __name__=='__main__':
     parser.add_argument('--lr', type=float, default=3.16e-4, help='learning_rate')
     parser.add_argument('--lr_update_iter', type=int, default=30000, help='Update lr every this iterations')
     parser.add_argument('--valset_path', type=str, default='/scratch/user/stuti/val_set')
+    parser.add_argument('--infer_iter', type=int, default=0, help='specify the iteration weight the model should pick for inference')
     args = parser.parse_args()
     main(args)
