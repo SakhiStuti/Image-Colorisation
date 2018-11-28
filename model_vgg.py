@@ -17,7 +17,7 @@ class ColorizationNetwork_L(nn.Module):
             nn.ReLU(inplace = True), #[batch, 128, 56*, 56*]
             nn.Conv2d(in_channels = 128, out_channels = 128, kernel_size = 3, stride = 1, padding = 1, dilation = 1),
             nn.ReLU(inplace = True), #[batch, 128, 56*, 56*]
-            nn.Conv2d(n_channels = 128, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1)
+            nn.Conv2d(in_channels = 128, out_channels = 313, kernel_size = 1, stride = 1,dilation = 1)
             #[batch, 313, 56*, 56*] 
         )
         

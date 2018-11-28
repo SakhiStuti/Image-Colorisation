@@ -34,7 +34,6 @@ def main(args):
 
 
 if __name__=='__main__':
-    print('Enter')
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=32, help='Specifiy the train batch size')
     parser.add_argument('--val_batch_size', type=int, default=2, help='Specify the val batch size')
