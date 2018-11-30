@@ -7,7 +7,7 @@ from model_vgg import ColorizationNetwork
 from skimage.color import lab2rgb
 from skimage import io
 import os
-from logger import Logger
+from tensorboardX import SummaryWriter
 gamut = np.load('./prior_prob/pts_in_gamut.npy')
 
 
@@ -30,7 +30,7 @@ class training:
         self.criterion = nn.CrossEntropyLoss(reduce=False).cuda()
         #optimizer
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=1e-3)
-        self.logger = Logger('./Tensorboard_logs')
+        self.logger = SummaryWriter('./Tensorboard_logs')
 
     def update_lr(self, lr):
         for param_group in self.optimizer.param_groups:
@@ -96,7 +96,7 @@ class training:
                 if (i+1) % 100 == 0:
                     print('At Epoch %d iteration %d, train loss is %f'%(epoch,i,loss.data[0]))
                     self.loss_arr.append(loss.data[0])
-                    self.logger.scalar_summary('train_loss', loss.data[0], i+1)
+                    self.logger.add_scalar('train_loss', loss.data[0], i+1)
     
                 #Update learning rate if required
                 if (i+1) % self.lr_update_iter == 0:
@@ -190,4 +190,5 @@ class training:
         test_loss = test_loss/float(len_record)
         print('val loss is %f'%(test_loss))
         self.test_arr.append(test_loss)
+        self.logger.add_scalar('val_loss', test_loss, curr_iter)
         print('Finished Validating.....................')
