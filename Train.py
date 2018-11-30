@@ -77,19 +77,21 @@ class training:
             count = 0
             for i, data in enumerate(train_loader, start_iter):
                 img, _ = data
-    
+                
                 img = Variable(img).cuda()
-    
                 weights, Z_gt, Z_pred = model(img)
-                loss = ((self.criterion(Z_pred, Z_gt))*weights.squeeze(dim = 1)).sum()
+                batch_size = weights.shape[0]
+                h = weights.shape[2]
+                w = weights.shape[3]
+                loss = torch.sum((self.criterion(Z_pred, Z_gt))*(weights.squeeze(dim = 1)))/(batch_size*1.0*h*w)
                 
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
     
                 #logging
-                if (i+1) % 500 == 0:
-                    print('At Epoch %d iteration %d, train loss is %.4f'%(epoch,i,loss.data[0]))
+                if (i+1) % 100 == 0:
+                    print('At Epoch %d iteration %d, train loss is %f'%(epoch,i,loss.data[0]))
                     self.loss_arr.append(loss.data[0])
     
                 #Update learning rate if required
@@ -100,9 +102,9 @@ class training:
                     self.update_lr(self.lr)
     
                 #validate/Test
-                #if (i+1)%2000 ==0:
-                    #self.test(val_loader, i)
-                    #model.train()
+                if (i+1)%2000 ==0:
+                    self.test(val_loader, i)
+                    model.train()
     
     
                 #checkpoint
@@ -178,6 +180,7 @@ class training:
             frs_predic_imgs = np.concatenate((img_L, frs_pred_ab ), axis = 3) #[batch, 224, 224, 3]
             #print('Saving image %s%d_frspredic_' %  (img_dir, global_iteration))
             self.save_imgs(frs_predic_imgs, '%s%d_frspredic_' %  (img_dir, global_iteration))
-        test_loss = test_loss/float(len_record)
-        print('val loss is %.4f'%(test_loss))
+        test_loss = test_loss/float(len_record*56*56)
+        print('val loss is %f'%(test_loss))
         self.test_arr.append(test_loss)
+        print('Finished Validating.....................')

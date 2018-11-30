@@ -78,7 +78,7 @@ class ColorizationNetwork(nn.Module):
         #batch = img.shape[0]
         #img_h = img.shape[2]
         #img_w = img.shape[3]
-        img_L = img[:,:1,:,:]
+        img_L = (img[:,:1,:,:] -50.)*0.02
         #img_L = img #[batch, 1, 224, 224]
         #img_L[:, 1:,:,:] = torch.zeros([batch, 2, img_h, img_w])
         Z_pred = self.ColorizationNetwork_L(img_L) #[batch, 313, 56, 56]
