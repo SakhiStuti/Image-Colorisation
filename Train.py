@@ -52,6 +52,8 @@ class training:
             del checkpoint_dict['state_dict'][key]
         self.model.load_state_dict(checkpoint_dict['state_dict'])
         self.lr = checkpoint_dict['lr']
+        self.loss_arr = checkpoint_dict['train_loss_list']
+        self.test_arr = checkpoint_dict['val_loss_list']
         return checkpoint_dict['iteration']
 
 
