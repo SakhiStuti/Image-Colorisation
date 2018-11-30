@@ -7,7 +7,7 @@ from model_vgg import ColorizationNetwork
 from skimage.color import lab2rgb
 from skimage import io
 import os
-
+from logger import Logger
 gamut = np.load('./prior_prob/pts_in_gamut.npy')
 
 
@@ -30,6 +30,7 @@ class training:
         self.criterion = nn.CrossEntropyLoss(reduce=False).cuda()
         #optimizer
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=1e-3)
+        self.logger = Logger('./Tensorboard_logs')
 
     def update_lr(self, lr):
         for param_group in self.optimizer.param_groups:
@@ -71,7 +72,7 @@ class training:
         model.train()
 
         
-
+        
         print('..........................Starting training.................')
 
         #start training
@@ -95,6 +96,7 @@ class training:
                 if (i+1) % 100 == 0:
                     print('At Epoch %d iteration %d, train loss is %f'%(epoch,i,loss.data[0]))
                     self.loss_arr.append(loss.data[0])
+                    self.logger.scalar_summary('train_loss', loss.data[0], i+1)
     
                 #Update learning rate if required
                 if (i+1) % self.lr_update_iter == 0:
@@ -165,7 +167,7 @@ class training:
             weights, Z_gt, Z_pred, Z_pred_upsample  = self.model(img)
             batch_size = weights.shape[0]
             h = weights.shape[2]
-            b = weights.shape[3]
+            w = weights.shape[3]
             loss = torch.sum((self.criterion(Z_pred, Z_gt)*weights.squeeze(dim = 1)))/(batch_size*1.0*h*w)
             test_loss += loss.data[0]
 

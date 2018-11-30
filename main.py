@@ -40,7 +40,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=32, help='Specifiy the train batch size')
     parser.add_argument('--val_batch_size', type=int, default=2, help='Specify the val batch size')
-    parser.add_argument('--num_iteration', type=int, default=40000, help='Number of training iterations')
+    parser.add_argument('--num_iteration', type=int, default=1000000000, help='Number of training iterations')
     parser.add_argument('--gpu', type=int, default=0, help='GPU ID')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for loading batch')
     parser.add_argument('--model', type=str, default='ColorizationNet', help='specify model')
