@@ -163,7 +163,10 @@ class training:
             img = Variable(img.cuda(), volatile=True)
 
             weights, Z_gt, Z_pred, Z_pred_upsample  = self.model(img)
-            loss = (self.criterion(Z_pred, Z_gt)*weights.squeeze(dim = 1)).sum()
+            batch_size = weights.shape[0]
+            h = weights.shape[2]
+            b = weights.shape[3]
+            loss = torch.sum((self.criterion(Z_pred, Z_gt)*weights.squeeze(dim = 1)))/(batch_size*1.0*h*w)
             test_loss += loss.data[0]
 
             img_L = img[:,:1,:,:] #[batch, 1, 224, 224]
@@ -182,7 +185,7 @@ class training:
             frs_predic_imgs = np.concatenate((img_L, frs_pred_ab ), axis = 3) #[batch, 224, 224, 3]
             #print('Saving image %s%d_frspredic_' %  (img_dir, global_iteration))
             self.save_imgs(frs_predic_imgs, '%s%d_frspredic_' %  (img_dir, global_iteration))
-        test_loss = test_loss/float(len_record*56*56)
+        test_loss = test_loss/float(len_record)
         print('val loss is %f'%(test_loss))
         self.test_arr.append(test_loss)
         print('Finished Validating.....................')
