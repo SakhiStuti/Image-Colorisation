@@ -31,6 +31,7 @@ class training:
         #optimizer
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=1e-3)
         self.logger = SummaryWriter('./Tensorboard_logs')
+        self.weight_dir = args.weight_dir
 
     def update_lr(self, lr):
         for param_group in self.optimizer.param_groups:
@@ -45,7 +46,11 @@ class training:
 
     def restore(self,resume_iter):
         print('Restoring model stage from ./net_%d.pth'%(resume_iter))
-        path = os.path.join(self.save_directory, './net_%d.pth'%(resume_iter))
+        if self.weight_dir:
+            path = os.path.join(self.weight_dir, '/net_%d.pth'%(resume_iter))
+        else:
+            path = os.path.join(self.save_directory, '/net_%d.pth'%(resume_iter))
+        
         checkpoint_dict = torch.load(path)
         keys = list(checkpoint_dict['state_dict'].keys())
         for key in keys:

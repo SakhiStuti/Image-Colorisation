@@ -53,5 +53,6 @@ if __name__=='__main__':
     parser.add_argument('--lr_update_iter', type=int, default=30000, help='Update lr every this iterations')
     parser.add_argument('--valset_path', type=str, default='/scratch/user/stuti/val_set')
     parser.add_argument('--infer_iter', type=int, default=0, help='specify the iteration weight the model should pick for inference')
+    parser.add_argument('--weight_dir', type=int, default=0, help='specify the save weight directory the model should pick for inference')
     args = parser.parse_args()
     main(args)
